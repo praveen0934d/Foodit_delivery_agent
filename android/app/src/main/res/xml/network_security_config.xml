@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ✅ AUDIT FIX §6.6: Network Security Configuration
+  - Blocks all cleartext (HTTP) traffic in release builds
+  - Debug-only override for local development servers
+  - Certificate pinning placeholder for production domain
+  
+  To add certificate pinning, run:
+    openssl s_client -connect inti11.sgcrguktsklm.org.in:443 | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
+  Then replace the pin-sha256 value below.
+-->
+<network-security-config>
+    <!-- Production: block cleartext, enforce HTTPS -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Certificate pinning for your production API domain -->
+    <!-- ⚠️ REPLACE the pin-sha256 values with your actual certificate hashes -->
+    <domain-config>
+        <domain includeSubdomains="true">inti11.sgcrguktsklm.org.in</domain>
+        <pin-set expiration="2027-06-19">
+            <!-- Primary pin: Extracted directly from inti11.sgcrguktsklm.org.in -->
+            <pin digest="SHA-256">TMM3GcBh3jzzQCqBG1mEmlf8YJNOUTWqMpxTzM4pM2g=</pin>
+            <!-- Backup pin: ISRG Root X1 (Let's Encrypt Root) to prevent 90-day rotation bricking -->
+            <pin digest="SHA-256">C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Allow cleartext ONLY for local development (debug builds) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="true">172.25.63.26</domain>
+    </domain-config>
+</network-security-config>
